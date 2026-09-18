@@ -1,0 +1,8 @@
+{"run_id": "5c76061f-1af4-44e2-86fa-a9ab3a31eaed", "status": "queued", "finished_steps": 1}
+{"run_id": "5c76061f-1af4-44e2-86fa-a9ab3a31eaed", "status": "queued", "finished_steps": 2}
+{"run_id": "5c76061f-1af4-44e2-86fa-a9ab3a31eaed", "status": "queued", "finished_steps": 3}
+{"run_id": "5c76061f-1af4-44e2-86fa-a9ab3a31eaed", "status": "queued", "finished_steps": 4}
+{"run_id": "5c76061f-1af4-44e2-86fa-a9ab3a31eaed", "status": "waiting_approval", "finished_steps": 4}
+DEMO: a distinct simulated reviewer approves this exact step.
+{"run_id": "5c76061f-1af4-44e2-86fa-a9ab3a31eaed", "status": "completed", "finished_steps": 5}
+{"registered_projects": 5, "events": 14, "memory_saved": true}

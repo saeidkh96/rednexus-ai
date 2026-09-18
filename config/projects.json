@@ -1,0 +1,142 @@
+[
+  {
+    "name": "redpa.search",
+    "project": "redpa",
+    "version": "1.0.0",
+    "description": "Retrieve evidence from knowledge sources",
+    "mode": "demo",
+    "effect": "read",
+    "approval": false,
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "objective": {
+          "type": "string"
+        },
+        "previous": {
+          "type": "object"
+        },
+        "event": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "output_schema": {
+      "type": "object"
+    },
+    "estimated_cost_microunits": 100
+  },
+  {
+    "name": "redpulse.analyze",
+    "project": "redpulse",
+    "version": "1.0.0",
+    "description": "Analyze an operational observation",
+    "mode": "demo",
+    "effect": "read",
+    "approval": false,
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "objective": {
+          "type": "string"
+        },
+        "previous": {
+          "type": "object"
+        },
+        "event": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "output_schema": {
+      "type": "object"
+    },
+    "estimated_cost_microunits": 100
+  },
+  {
+    "name": "redguard.verify",
+    "project": "redguard",
+    "version": "1.0.0",
+    "description": "Verify supplied visual evidence",
+    "mode": "demo",
+    "effect": "read",
+    "approval": false,
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "objective": {
+          "type": "string"
+        },
+        "previous": {
+          "type": "object"
+        },
+        "event": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "output_schema": {
+      "type": "object"
+    },
+    "estimated_cost_microunits": 100
+  },
+  {
+    "name": "redworld.simulate",
+    "project": "redworld",
+    "version": "1.0.0",
+    "description": "Run a bounded world scenario",
+    "mode": "demo",
+    "effect": "read",
+    "approval": false,
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "objective": {
+          "type": "string"
+        },
+        "previous": {
+          "type": "object"
+        },
+        "event": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "output_schema": {
+      "type": "object"
+    },
+    "estimated_cost_microunits": 100
+  },
+  {
+    "name": "redforge.propose",
+    "project": "redforge",
+    "version": "1.0.0",
+    "description": "Prepare a software change proposal",
+    "mode": "demo",
+    "effect": "propose",
+    "approval": true,
+    "input_schema": {
+      "type": "object",
+      "properties": {
+        "objective": {
+          "type": "string"
+        },
+        "previous": {
+          "type": "object"
+        },
+        "event": {
+          "type": "object"
+        }
+      },
+      "additionalProperties": true
+    },
+    "output_schema": {
+      "type": "object"
+    },
+    "estimated_cost_microunits": 100
+  }
+]

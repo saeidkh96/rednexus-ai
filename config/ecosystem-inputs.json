@@ -1,0 +1,35 @@
+{
+  "redpulse.analyze": {
+    "machine_id": "motor-1",
+    "baseline": [
+      0.1,
+      0.2
+    ],
+    "current": [
+      0.4,
+      0.5
+    ],
+    "drift_score": 0.3,
+    "trajectory_match": 0.7
+  },
+  "redguard.inspect": {
+    "component_id": "part-1",
+    "component_type": "panel",
+    "change_score": 0.2,
+    "fingerprint_similarity": 0.9,
+    "anomaly_score": 0.1,
+    "edge_difference": 0.2,
+    "texture_difference": 0.1,
+    "reference_consensus": 0.9
+  },
+  "redforge.scan": {},
+  "redpa.documents": {},
+  "redpa.chat": {
+    "conversation_id": "00000000-0000-0000-0000-000000000000",
+    "content": "Summarize the documents attached to this conversation."
+  },
+  "redworld.snapshot": {},
+  "redworld.advance": {
+    "steps": 1
+  }
+}

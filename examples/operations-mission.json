@@ -1,0 +1,13 @@
+{
+  "title": "Demonstrate a cross-project investigation",
+  "steps": [
+    {"capability": "redpulse.analyze", "input": {"objective": "Inspect a simulated operational signal"}},
+    {"capability": "redpa.search", "input": {"objective": "Retrieve supporting evidence"}, "use_previous": true},
+    {"capability": "redguard.verify", "input": {"objective": "Demonstrate verification contract; visual input is a fixture"}, "use_previous": true},
+    {"capability": "redworld.simulate", "input": {"objective": "Demonstrate scenario contract; no real world model is invoked"}, "use_previous": true},
+    {"capability": "redforge.propose", "input": {"objective": "Demonstrate reviewed change proposal"}, "use_previous": true}
+  ],
+  "budget_microunits": 1000000,
+  "max_tool_calls": 20,
+  "deadline_seconds": 3600
+}

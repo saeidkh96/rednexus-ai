@@ -1,0 +1,55 @@
+{
+  "version": "1.0.0-rc.2",
+  "generated_at": "2026-09-17T20:41:34.734480+00:00",
+  "python": "3.12.14",
+  "platform": "Linux",
+  "core_tests_passed": true,
+  "passed_tests": 74,
+  "skipped_tests": 2,
+  "failed_tests": 0,
+  "line_coverage_percent": 79.67,
+  "lint_passed": true,
+  "real_http_fixture_passed": true,
+  "api_worker_process_smoke_passed": true,
+  "sqlite_backup_restore_passed": true,
+  "verified_live_projects": [
+    "redguard",
+    "redforge",
+    "redworld"
+  ],
+  "redworld_validation": {
+    "source_archive": "red-ecosystem-source.zip",
+    "world_api_version": "2.0.0",
+    "population": 50,
+    "scope": "Original complete source app in temporary local HTTP process",
+    "verified_capabilities": [
+      "redworld.snapshot",
+      "redworld.advance"
+    ],
+    "reviewed_workflow_output_ticks": [
+      2,
+      3,
+      3
+    ]
+  },
+  "postgres_verified": false,
+  "redis_verified": false,
+  "browser_verified": false,
+  "windows_verified": false,
+  "live_model_verified": false,
+  "otel_collector_verified": false,
+  "stable_v1_ready": false,
+  "remaining_projects": [
+    "redpa",
+    "redpulse"
+  ],
+  "source_router_verified_projects": [
+    "redpulse"
+  ],
+  "protocol_fixture_only_projects": [
+    "redpa"
+  ],
+  "source_archive_sha256": "26b28266e436213795c53e13d67ba3cca0eefb0d12a500a9515fb7748b5af8a6",
+  "redforge_source_python": "3.14.7",
+  "integration_scope_document": "docs/INTEGRATION_STATUS.md"
+}

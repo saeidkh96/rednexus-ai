@@ -1,0 +1,154 @@
+{
+  "additionalProperties": false,
+  "properties": {
+    "name": {
+      "pattern": "^[a-z][a-z0-9_.]{2,100}$",
+      "title": "Name",
+      "type": "string"
+    },
+    "project": {
+      "pattern": "^[a-z][a-z0-9_-]{1,60}$",
+      "title": "Project",
+      "type": "string"
+    },
+    "version": {
+      "pattern": "^\\d+\\.\\d+\\.\\d+$",
+      "title": "Version",
+      "type": "string"
+    },
+    "description": {
+      "maxLength": 500,
+      "title": "Description",
+      "type": "string"
+    },
+    "mode": {
+      "default": "disabled",
+      "enum": [
+        "demo",
+        "http",
+        "disabled"
+      ],
+      "title": "Mode",
+      "type": "string"
+    },
+    "protocol": {
+      "default": "nexus",
+      "enum": [
+        "nexus",
+        "redworld_v140",
+        "redworld_v200",
+        "redpulse_v400",
+        "redguard_v100",
+        "redforge_v161",
+        "redpa_v191"
+      ],
+      "title": "Protocol",
+      "type": "string"
+    },
+    "workspace_binding": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Workspace Binding"
+    },
+    "resource_binding": {
+      "anyOf": [
+        {
+          "maxLength": 1000,
+          "minLength": 1,
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Resource Binding"
+    },
+    "effect": {
+      "default": "read",
+      "enum": [
+        "read",
+        "propose",
+        "write"
+      ],
+      "title": "Effect",
+      "type": "string"
+    },
+    "approval": {
+      "default": false,
+      "title": "Approval",
+      "type": "boolean"
+    },
+    "endpoint": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Endpoint"
+    },
+    "credential_env": {
+      "anyOf": [
+        {
+          "pattern": "^[A-Z][A-Z0-9_]*$",
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Credential Env"
+    },
+    "timeout_seconds": {
+      "default": 20,
+      "maximum": 60,
+      "minimum": 1,
+      "title": "Timeout Seconds",
+      "type": "integer"
+    },
+    "max_attempts": {
+      "default": 2,
+      "maximum": 4,
+      "minimum": 1,
+      "title": "Max Attempts",
+      "type": "integer"
+    },
+    "estimated_cost_microunits": {
+      "default": 0,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Estimated Cost Microunits",
+      "type": "integer"
+    },
+    "input_schema": {
+      "additionalProperties": true,
+      "title": "Input Schema",
+      "type": "object"
+    },
+    "output_schema": {
+      "additionalProperties": true,
+      "title": "Output Schema",
+      "type": "object"
+    }
+  },
+  "required": [
+    "name",
+    "project",
+    "version",
+    "description"
+  ],
+  "title": "CapabilitySpec",
+  "type": "object"
+}

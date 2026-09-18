@@ -1,0 +1,17 @@
+{
+  "manifest_version": "0.1-proposal",
+  "project_id": "redpa",
+  "service_id": "redpa-knowledge",
+  "mode": "simulated",
+  "base_url": null,
+  "capabilities": [{
+    "name": "knowledge.search",
+    "contract_version": "1.0.0-proposal",
+    "required_scopes": ["knowledge:read"],
+    "side_effect_class": "read",
+    "approval_policy": "workspace-policy",
+    "timeout_seconds": 15,
+    "input_schema": "not-yet-defined",
+    "output_schema": "not-yet-defined"
+  }]
+}

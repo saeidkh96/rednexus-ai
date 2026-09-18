@@ -1,0 +1,13 @@
+{
+  "version": "1.0.0-rc.2",
+  "stable_v1_ready": false,
+  "gates": {
+    "core_tests_passed": true,
+    "five_http_projects_configured": true,
+    "five_live_projects_verified": false,
+    "postgres_verified": false,
+    "redis_verified": false,
+    "browser_verified": false,
+    "windows_verified": false
+  }
+}

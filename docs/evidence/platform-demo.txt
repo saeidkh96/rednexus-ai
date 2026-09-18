@@ -1,0 +1,8 @@
+{"run_id": "f5b500d3-f794-4d26-99b3-370b4fc276d2", "status": "queued", "steps": 1}
+{"run_id": "f5b500d3-f794-4d26-99b3-370b4fc276d2", "status": "queued", "steps": 2}
+{"run_id": "f5b500d3-f794-4d26-99b3-370b4fc276d2", "status": "queued", "steps": 3}
+{"run_id": "f5b500d3-f794-4d26-99b3-370b4fc276d2", "status": "queued", "steps": 4}
+{"run_id": "f5b500d3-f794-4d26-99b3-370b4fc276d2", "status": "waiting_approval", "steps": 4}
+DEMO ONLY: authenticated test reviewer submits a scripted approval.
+{"run_id": "f5b500d3-f794-4d26-99b3-370b4fc276d2", "status": "completed", "steps": 5}
+{"run_id": "f5b500d3-f794-4d26-99b3-370b4fc276d2", "completed": true, "steps_finished": 5, "steps_total": 5, "within_reserved_budget": true, "simulated_outputs": 5, "outputs_with_evidence": 5, "quality_judgment": "structural checks only; domain quality needs domain-specific evaluators"}

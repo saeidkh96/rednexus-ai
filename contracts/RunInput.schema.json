@@ -1,0 +1,73 @@
+{
+  "$defs": {
+    "StepInput": {
+      "additionalProperties": false,
+      "properties": {
+        "capability": {
+          "title": "Capability",
+          "type": "string"
+        },
+        "input": {
+          "additionalProperties": true,
+          "title": "Input",
+          "type": "object"
+        },
+        "use_previous": {
+          "default": false,
+          "title": "Use Previous",
+          "type": "boolean"
+        }
+      },
+      "required": [
+        "capability"
+      ],
+      "title": "StepInput",
+      "type": "object"
+    }
+  },
+  "additionalProperties": false,
+  "properties": {
+    "title": {
+      "maxLength": 200,
+      "minLength": 1,
+      "title": "Title",
+      "type": "string"
+    },
+    "steps": {
+      "items": {
+        "$ref": "#/$defs/StepInput"
+      },
+      "maxItems": 20,
+      "minItems": 1,
+      "title": "Steps",
+      "type": "array"
+    },
+    "budget_microunits": {
+      "default": 1000000,
+      "maximum": 1000000000,
+      "minimum": 0,
+      "title": "Budget Microunits",
+      "type": "integer"
+    },
+    "max_tool_calls": {
+      "default": 20,
+      "maximum": 80,
+      "minimum": 1,
+      "title": "Max Tool Calls",
+      "type": "integer"
+    },
+    "deadline_seconds": {
+      "default": 3600,
+      "maximum": 86400,
+      "minimum": 10,
+      "title": "Deadline Seconds",
+      "type": "integer"
+    }
+  },
+  "required": [
+    "title",
+    "steps"
+  ],
+  "title": "RunInput",
+  "type": "object"
+}

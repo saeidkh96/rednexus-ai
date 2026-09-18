@@ -1,0 +1,62 @@
+name: rednexus
+x-platform: &platform
+  build: .
+  environment: &environment
+    NEXUS_DATABASE_URL: postgresql+psycopg://nexus:${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}@postgres:5432/nexus
+    NEXUS_REDIS_URL: redis://redis:6379/0
+    NEXUS_MANIFEST: /app/config/projects.json
+  volumes:
+    - ./config:/app/config:ro
+services:
+  postgres:
+    image: postgres:17-alpine
+    environment:
+      POSTGRES_DB: nexus
+      POSTGRES_USER: nexus
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:?Set POSTGRES_PASSWORD in .env}
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [CMD-SHELL, pg_isready -U nexus -d nexus]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+  redis:
+    image: redis:7-alpine
+    command: [redis-server, --appendonly, 'yes']
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 5s
+      timeout: 3s
+      retries: 20
+  migrate:
+    <<: *platform
+    command: [python, -m, rednexus.platform.cli, migrate]
+    depends_on:
+      postgres:
+        condition: service_healthy
+  api:
+    <<: *platform
+    ports:
+      - '127.0.0.1:8000:8000'
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health/ready')"]
+      interval: 10s
+      timeout: 5s
+      retries: 10
+  worker:
+    <<: *platform
+    command: [python, -m, rednexus.platform.cli, worker]
+    depends_on:
+      migrate:
+        condition: service_completed_successfully
+      redis:
+        condition: service_healthy
+volumes:
+  postgres_data:
+  redis_data:
