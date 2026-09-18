@@ -1,5 +1,3 @@
-> نسخه جدید: **1.0.0-rc.2** — برای اتصال پروژه‌های واقعی ابتدا [راهنمای اکوسیستم](docs/ECOSYSTEM_SETUP_FA.md) را اجرا کن. بخش‌های RC1 پایین، راهنمای پایه و سابقه نسخه قبلی‌اند.
-
 # RedNexus AI
 
 **One mission. Multiple specialized systems. A traceable outcome.**
