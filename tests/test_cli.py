@@ -53,7 +53,7 @@ def test_cli_migrate_bootstrap_api_worker_and_backup(tmp_path):
                     try:
                         if client.get("/health/ready").status_code == 200:
                             break
-                    except httpx.ConnectError:
+                    except (httpx.ConnectError, httpx.ConnectTimeout):
                         pass
                     time.sleep(0.1)
                 else:
@@ -137,7 +137,7 @@ def test_launcher_starts_api_worker_and_reports_duplicate_worker(tmp_path):
                     try:
                         if client.get(f'http://127.0.0.1:{port}/health/ready').status_code == 200:
                             break
-                    except httpx.ConnectError:
+                    except (httpx.ConnectError, httpx.ConnectTimeout):
                         pass
                     time.sleep(.1)
                 else:

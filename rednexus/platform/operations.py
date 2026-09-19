@@ -21,8 +21,7 @@ class WorkerLock:
 
     def __enter__(self):
         self.file = open(self.path, "a+b")
-        self.file.seek(0)
-        if self.file.read(1) == b"":
+        if self.path.stat().st_size == 0:
             self.file.write(b"0")
             self.file.flush()
         self.file.seek(0)
