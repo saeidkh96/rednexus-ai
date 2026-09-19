@@ -1,0 +1,14 @@
+{
+  "title": "Demo: research into reviewed proposal",
+  "steps": [
+    {"capability": "redpa.search", "input": {"objective": "Inspect a sample motor anomaly"}},
+    {
+      "capability": "redforge.propose",
+      "bindings": {"objective": {"step": 0, "pointer": "/received/objective", "format": "value"}},
+      "when": {"step": 0, "pointer": "/simulated", "op": "eq", "value": true}
+    }
+  ],
+  "budget_microunits": 1000000,
+  "max_tool_calls": 4,
+  "deadline_seconds": 3600
+}

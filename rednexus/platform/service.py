@@ -1,11 +1,12 @@
 import time
-from sqlalchemy import select, func, update
+from sqlalchemy import select, func, update, delete
 from sqlalchemy.exc import IntegrityError
 from .contracts import digest, RunInput
 from .identity import Problem, actor_for
-from .storage import Run, Approval, Event, Memory, Agent, Rule, Inbox, Membership, Workspace
+from .storage import Run, Approval, Event, Memory, Agent, Rule, Inbox, Membership, Workspace, MemoryVector
 from .events import emit
 from .adapters import validate_payload
+from .workflows import validate_static
 
 
 def run_view(row):
@@ -34,6 +35,7 @@ def run_view(row):
 class Platform:
     def __init__(self, db, registry, settings):
         self.db, self.registry, self.settings = db, registry, settings
+        registry.db = db
 
     def accessible_run(self, s, actor, run_id):
         row = s.get(Run, run_id)
@@ -44,6 +46,7 @@ class Platform:
         return row
 
     def snapshot(self, actor, workflow):
+        self.registry.refresh()
         actor.require_role("admin", "operator")
         plan = []
         for index, step in enumerate(workflow.steps):
@@ -53,10 +56,7 @@ class Platform:
             actor.require(f"tool:{spec.name}")
             if step.use_previous and index == 0:
                 raise Problem(422, "first step cannot consume a previous result")
-            payload = dict(step.input)
-            if step.use_previous:
-                payload["previous"] = {}  # Actual value validated again at execution.
-            validate_payload(spec.input_schema, payload)
+            validate_static(spec.input_schema, step)
             plan.append(
                 {
                     **step.model_dump(),
@@ -278,12 +278,15 @@ class Platform:
             if not row or row.workspace != actor.workspace:
                 raise Problem(404, "memory not found")
             actor.require(f"memory:{row.namespace}:write")
+            ids = select(Memory.id).where(Memory.workspace == actor.workspace, Memory.namespace == row.namespace,
+                                         Memory.key == row.key)
             # Redact every version of this logical key; audit retains only record identifiers.
             s.execute(
                 update(Memory)
                 .where(Memory.workspace == actor.workspace, Memory.namespace == row.namespace, Memory.key == row.key)
                 .values(deleted=True, text="", source="deleted")
             )
+            s.execute(delete(MemoryVector).where(MemoryVector.memory_id.in_(ids)))
             emit(s, actor.workspace, "memory.deleted", {"namespace": row.namespace, "key": row.key, "actor": actor.id})
         return {"deleted": True}
 

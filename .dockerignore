@@ -7,3 +7,11 @@ __pycache__
 data
 backups
 .pytest_cache
+.env.*
+!.env.example
+credentials*.json
+secrets
+*.zip
+*.log
+.coverage
+.ruff_cache

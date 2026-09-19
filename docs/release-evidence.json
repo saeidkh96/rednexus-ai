@@ -1,55 +1,58 @@
 {
-  "version": "1.0.0-rc.2",
-  "generated_at": "2026-09-17T20:41:34.734480+00:00",
+  "version": "2.0.0-rc.1",
+  "generated_at": "2026-09-19T17:51:37.651228+00:00",
   "python": "3.12.14",
   "platform": "Linux",
   "core_tests_passed": true,
-  "passed_tests": 74,
-  "skipped_tests": 2,
+  "passed_tests": 98,
+  "skipped_tests": 4,
   "failed_tests": 0,
-  "line_coverage_percent": 79.67,
-  "lint_passed": true,
-  "real_http_fixture_passed": true,
-  "api_worker_process_smoke_passed": true,
-  "sqlite_backup_restore_passed": true,
-  "verified_live_projects": [
-    "redguard",
-    "redforge",
-    "redworld"
+  "line_coverage_percent": 75.92,
+  "skipped": [
+    {
+      "test": "test_supplied_source_native_endpoint[redforge-redforge.scan]",
+      "reason": "RedForge source requires Python 3.14; set NEXUS_TEST_REDFORGE_PYTHON"
+    },
+    {
+      "test": "test_real_postgresql_migration_and_worker",
+      "reason": "NEXUS_TEST_POSTGRES_URL is not configured"
+    },
+    {
+      "test": "test_real_redis_stream_outbox_receipts",
+      "reason": "NEXUS_TEST_REDIS_URL is not configured"
+    },
+    {
+      "test": "test_studio_v2_workflow_template_and_operations",
+      "reason": "NEXUS_TEST_BROWSER is not enabled"
+    }
   ],
-  "redworld_validation": {
-    "source_archive": "red-ecosystem-source.zip",
-    "world_api_version": "2.0.0",
-    "population": 50,
-    "scope": "Original complete source app in temporary local HTTP process",
-    "verified_capabilities": [
-      "redworld.snapshot",
-      "redworld.advance"
-    ],
-    "reviewed_workflow_output_ticks": [
-      2,
-      3,
-      3
-    ]
-  },
-  "postgres_verified": false,
-  "redis_verified": false,
-  "browser_verified": false,
-  "windows_verified": false,
-  "live_model_verified": false,
-  "otel_collector_verified": false,
-  "stable_v1_ready": false,
-  "remaining_projects": [
-    "redpa",
-    "redpulse"
+  "source_app_verified_projects": [
+    "redguard",
+    "redworld"
   ],
   "source_router_verified_projects": [
     "redpulse"
   ],
-  "protocol_fixture_only_projects": [
-    "redpa"
-  ],
-  "source_archive_sha256": "26b28266e436213795c53e13d67ba3cca0eefb0d12a500a9515fb7748b5af8a6",
-  "redforge_source_python": "3.14.7",
-  "integration_scope_document": "docs/INTEGRATION_STATUS.md"
+  "verified_live_projects": [],
+  "live_scope_note": "Source applications/router ran in isolated temporary HTTP processes; user's deployed services were not accessed.",
+  "sqlite_backup_restore_passed": true,
+  "api_worker_process_smoke_passed": true,
+  "launcher_duplicate_worker_test_passed": true,
+  "lint_passed": true,
+  "browser_verified": false,
+  "windows_verified": false,
+  "postgres_verified": false,
+  "redis_verified": false,
+  "redpa_chat_live_verified": false,
+  "semantic_provider_verified": false,
+  "distributed_recovery_verified": false,
+  "live_model_verified": false,
+  "otel_collector_verified": false,
+  "stable_v2_ready": false,
+  "environment_limits": [
+    "PostgreSQL/Redis binaries unavailable; package installation failed under container OS permissions",
+    "Playwright browser download failed (timeouts/502); JavaScript syntax checked but no browser execution",
+    "RedForge source requires unavailable Python 3.14 interpreter; protocol tests passed",
+    "Windows DPAPI, PowerShell upgrade and live model providers require target validation"
+  ]
 }

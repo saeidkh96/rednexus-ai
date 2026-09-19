@@ -17,6 +17,10 @@ class Settings:
     model_name: str = ""
     model_key_env: str = "NEXUS_MODEL_API_KEY"
     model_max_tokens: int = 2048
+    credential_file: str = ""
+    embedding_url: str = ""
+    embedding_model: str = ""
+    embedding_key_env: str = "NEXUS_EMBEDDING_API_KEY"
 
     @classmethod
     def from_env(cls):
@@ -28,6 +32,9 @@ class Settings:
             allow_http=os.getenv("NEXUS_ALLOW_HTTP", "false").lower() == "true",
             model_url=os.getenv("NEXUS_MODEL_URL", ""),
             model_name=os.getenv("NEXUS_MODEL_NAME", ""),
+            credential_file=os.getenv("NEXUS_CREDENTIAL_FILE", str(Path.home() / ".rednexus" / "credentials.json")),
+            embedding_url=os.getenv("NEXUS_EMBEDDING_URL", ""),
+            embedding_model=os.getenv("NEXUS_EMBEDDING_MODEL", ""),
         )
 
     def prepare(self):

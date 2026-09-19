@@ -6,6 +6,9 @@ import os
 import secrets
 import signal
 import sqlite3
+import re
+from contextlib import nullcontext
+from pydantic import ValidationError
 from pathlib import Path
 from sqlalchemy import select
 from .config import Settings
@@ -33,8 +36,11 @@ def grants(registry):
     )
 
 
-async def worker_loop(worker, bus=None, once=False):
+async def worker_loop(worker, bus=None, once=False, concurrency=1):
+    from .operations import heartbeat
+    from .storage import uid
     running = True
+    worker_id = uid()
 
     def stop(*_):
         nonlocal running
@@ -42,18 +48,34 @@ async def worker_loop(worker, bus=None, once=False):
 
     for sig in [signal.SIGINT, signal.SIGTERM]:
         signal.signal(sig, stop)
-    while running:
-        worked = await worker.tick()
-        if bus:
-            try:
-                bus.publish()
-                bus.consume()
-            except Exception as exc:
-                print(json.dumps({"event": "broker_unavailable", "error_type": type(exc).__name__}), flush=True)
-        if once:
-            break
-        if not worked:
-            await asyncio.sleep(1)
+    async def pulse():
+        while True:
+            heartbeat(worker.platform, worker_id, "running")
+            await asyncio.sleep(5)
+
+    monitor = asyncio.create_task(pulse())
+    print(json.dumps({"event": "worker_started", "id": worker_id, "pid": os.getpid(),
+                      "concurrency": concurrency}), flush=True)
+    try:
+        while running:
+            results = await asyncio.gather(*(worker.tick() for _ in range(concurrency)))
+            if any(results):
+                print(json.dumps({"event": "worker_progress", "processed": sum(results)}), flush=True)
+            if bus:
+                try:
+                    bus.publish()
+                    bus.consume()
+                except Exception as exc:
+                    print(json.dumps({"event": "broker_unavailable", "error_type": type(exc).__name__}), flush=True)
+            if once:
+                break
+            if not any(results):
+                await asyncio.sleep(1)
+    finally:
+        monitor.cancel()
+        await asyncio.gather(monitor, return_exceptions=True)
+        heartbeat(worker.platform, worker_id, "stopped")
+        print(json.dumps({"event": "worker_stopped", "id": worker_id}), flush=True)
 
 
 def demo():
@@ -142,7 +164,23 @@ def main():
     serve.add_argument("--port", type=int, default=8000)
     work = sub.add_parser("worker")
     work.add_argument("--once", action="store_true")
+    work.add_argument("--concurrency", type=int, choices=range(1, 9), default=1)
+    work.add_argument("--distributed", action="store_true", help="Multiple workers; PostgreSQL required")
+    sub.add_parser("doctor")
+    sub.add_parser("purge-memory")
+    workspace = sub.add_parser("create-workspace")
+    workspace.add_argument("--workspace", required=True)
+    workspace.add_argument("--username", required=True)
+    secret = sub.add_parser("credential-set", help="Prompt for a token and store outside the repository")
+    secret.add_argument("name", help="Uppercase credential variable, e.g. NEXUS_REDPA_TOKEN")
+    redpa = sub.add_parser("redpa-login", help="Authenticate against the real RedPA OAuth form endpoint")
+    redpa.add_argument("--url", default="http://127.0.0.1:8111/api/v1/auth/login")
+    redpa.add_argument("--username", required=True)
     sub.add_parser("demo")
+    launch_parser = sub.add_parser("launch", help="Start API and one worker together; Ctrl+C stops both")
+    launch_parser.add_argument("--ecosystem", action="store_true")
+    launch_parser.add_argument("--port", type=int, default=8000)
+    launch_parser.add_argument("--concurrency", type=int, choices=range(1, 9), default=2)
     backup = sub.add_parser("backup")
     backup.add_argument("destination")
     restore = sub.add_parser("restore")
@@ -150,11 +188,14 @@ def main():
     args = parser.parse_args()
     if args.command == "demo":
         return demo()
+    if args.command == "launch":
+        from .launcher import launch
+        raise SystemExit(launch(args.port, args.concurrency, args.ecosystem))
     settings, db, registry, platform = stack()
     try:
         if args.command == "migrate":
             db.migrate()
-            print("Schema version 1 is ready.")
+            print("Schema version 2 is ready (additive migration).")
         elif args.command == "bootstrap":
             db.migrate()
             password = os.getenv("NEXUS_BOOTSTRAP_PASSWORD") or getpass.getpass("New admin password (12+ characters): ")
@@ -165,6 +206,7 @@ def main():
             )
             print(json.dumps(result))
         elif args.command == "sync-admin-grants":
+            registry.refresh()
             with db.session.begin() as s:
                 user = s.scalar(select(User).where(User.username == args.username))
                 membership = s.get(Membership, (args.workspace, user.id)) if user else None
@@ -196,10 +238,53 @@ def main():
             uvicorn.run(app, host=args.host, port=args.port)
         elif args.command == "worker":
             from .telemetry import configure
+            from .operations import WorkerLock
 
             configure()
+            db.migrate()
+            if args.distributed and not settings.database_url.startswith("postgresql"):
+                raise Problem(422, "distributed workers require PostgreSQL; use --concurrency locally")
             bus = EventBus(db, settings.redis_url) if settings.redis_url else None
-            asyncio.run(worker_loop(Worker(platform, Gateway(registry)), bus, args.once))
+            with nullcontext() if args.distributed else WorkerLock(settings):
+                asyncio.run(worker_loop(Worker(platform, Gateway(registry)), bus, args.once, args.concurrency))
+        elif args.command == "doctor":
+            from .operations import doctor
+            print(json.dumps(doctor(platform), indent=2))
+        elif args.command == "create-workspace":
+            from .extensions import WorkspaceInput
+            data = WorkspaceInput(id=args.workspace, name=args.workspace)
+            with db.session.begin() as s:
+                user = s.scalar(select(User).where(User.username == args.username, User.enabled.is_(True)))
+                if not user:
+                    raise Problem(404, "existing active user required")
+                if s.get(Workspace, data.id):
+                    raise Problem(409, "workspace already exists")
+                s.add(Workspace(id=data.id, name=data.name))
+                s.add(Membership(workspace=data.id, user_id=user.id, role="admin", grants=[]))
+                emit(s, data.id, "workspace.created", {"actor": "local-operator-cli", "user": user.id})
+            print("Workspace created with an administrator and no tool grants.")
+        elif args.command == "purge-memory":
+            from .memory import purge_expired
+            print(json.dumps({"redacted_expired_records": purge_expired(db)}))
+        elif args.command in ("credential-set", "redpa-login"):
+            from .credentials import save_credential
+            if args.command == "credential-set":
+                if not re.fullmatch(r"[A-Z][A-Z0-9_]{0,100}", args.name):
+                    raise Problem(422, "credential name must be an uppercase environment variable name")
+                name, value = args.name, getpass.getpass("Paste credential (hidden): ").strip()
+            else:
+                import httpx
+                registry.check_endpoint(args.url)
+                with httpx.Client(timeout=20, follow_redirects=False, trust_env=False) as client:
+                    response = client.post(args.url, data={"username": args.username,
+                        "password": getpass.getpass("RedPA password (hidden): ")})
+                if response.status_code != 200:
+                    raise Problem(401, f"RedPA login returned HTTP {response.status_code}; verify URL and account")
+                name, value = "NEXUS_REDPA_TOKEN", response.json().get("access_token", "")
+            if not isinstance(value, str) or not value.strip():
+                raise Problem(422, "empty credential")
+            save_credential(name, value, settings.credential_file or None)
+            print("Credential saved outside the repository; workers read it on the next call.")
         elif args.command in ("backup", "restore"):
             if not settings.database_url.startswith("sqlite:///"):
                 raise Problem(400, "PostgreSQL: use pg_dump / pg_restore; see OPERATIONS.md")
@@ -224,6 +309,10 @@ def main():
                 print("Restored into new database.")
     except Problem as exc:
         parser.exit(1, f"{exc.message}\n")
+    except ValidationError as exc:
+        details = "; ".join(".".join(map(str, e["loc"])) + ": " + e["type"]
+                            for e in exc.errors(include_input=False, include_url=False))
+        parser.exit(1, "Invalid input: " + details + "\n")
     finally:
         db.close()
 

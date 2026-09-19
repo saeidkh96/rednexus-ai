@@ -201,10 +201,10 @@ class Database:
         Base.metadata.create_all(self.engine)
         with self.session.begin() as s:
             versions = s.query(SchemaVersion).all()
-            if any(v.version != 1 for v in versions):
+            if any(v.version not in (1, 2) for v in versions):
                 raise RuntimeError("unsupported schema version")
-            if not versions:
-                s.add(SchemaVersion(version=1))
+            if not any(v.version == 2 for v in versions):
+                s.add(SchemaVersion(version=2))
 
     def health(self):
         with self.engine.connect() as c:
@@ -219,3 +219,55 @@ class RateBucket(Base):
     key = Column(String(200), primary_key=True)
     count = Column(Integer, nullable=False, default=0)
     window = Column(Float, nullable=False)
+
+
+class Template(Base):
+    __tablename__ = "nx_templates"
+    __table_args__ = (UniqueConstraint("workspace", "name", "version"),)
+    id = Column(String(36), primary_key=True, default=uid)
+    workspace = Column(String(80), nullable=False, index=True)
+    name = Column(String(100), nullable=False)
+    version = Column(Integer, nullable=False)
+    workflow = Column(JSON, nullable=False)
+    owner = Column(String(36), nullable=False)
+    created = Column(Float, nullable=False, default=time.time)
+
+
+class CapabilityRegistration(Base):
+    __tablename__ = "nx_capability_registrations"
+    __table_args__ = (UniqueConstraint("name"),)
+    workspace = Column(String(80), primary_key=True)
+    name = Column(String(100), primary_key=True)
+    spec = Column(JSON, nullable=False)
+    updated = Column(Float, nullable=False, default=time.time)
+
+
+class WorkerHeartbeat(Base):
+    __tablename__ = "nx_worker_heartbeats"
+    id = Column(String(100), primary_key=True)
+    updated = Column(Float, nullable=False, default=time.time)
+    status = Column(String(20), nullable=False)
+    host = Column(String(200), nullable=False)
+    pid = Column(Integer, nullable=False)
+    credentials = Column(JSON, nullable=False, default=list)
+
+
+class MemoryVector(Base):
+    __tablename__ = "nx_memory_vectors"
+    memory_id = Column(String(36), primary_key=True)
+    model = Column(String(200), nullable=False)
+    vector = Column(JSON, nullable=False)
+
+
+class MissionGroup(Base):
+    __tablename__ = "nx_mission_groups"
+    __table_args__ = (UniqueConstraint("workspace", "owner", "request_key"),)
+    id = Column(String(36), primary_key=True, default=uid)
+    workspace = Column(String(80), nullable=False, index=True)
+    owner = Column(String(36), nullable=False)
+    request_key = Column(String(200), nullable=False)
+    request_digest = Column(String(64), nullable=False)
+    title = Column(String(200), nullable=False)
+    runs = Column(JSON, nullable=False)
+    budget = Column(BigInteger, nullable=False)
+    created = Column(Float, nullable=False, default=time.time)

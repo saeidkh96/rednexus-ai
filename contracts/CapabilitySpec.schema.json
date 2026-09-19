@@ -98,6 +98,18 @@
       "default": null,
       "title": "Endpoint"
     },
+    "health_endpoint": {
+      "anyOf": [
+        {
+          "type": "string"
+        },
+        {
+          "type": "null"
+        }
+      ],
+      "default": null,
+      "title": "Health Endpoint"
+    },
     "credential_env": {
       "anyOf": [
         {

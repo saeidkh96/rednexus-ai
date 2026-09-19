@@ -4,6 +4,7 @@ from pathlib import Path
 from fastapi import FastAPI, Depends, Header, Request
 from fastapi.responses import FileResponse, JSONResponse, PlainTextResponse
 from fastapi.security import HTTPAuthorizationCredentials, HTTPBearer
+from fastapi.exceptions import RequestValidationError
 from fastapi.staticfiles import StaticFiles
 from sqlalchemy import select, func
 from sqlalchemy.exc import IntegrityError
@@ -72,7 +73,7 @@ def create_app(settings=None, db=None, registry=None):
         db.health()
         yield
 
-    app = FastAPI(title="RedNexus AI", version="1.0.0-rc.2", lifespan=lifespan)
+    app = FastAPI(title="RedNexus AI", version="2.0.0-rc.1", lifespan=lifespan)
     app.add_middleware(RequestLimits)
     app.state.platform, app.state.identity, app.state.db = platform, identity, db
 
@@ -83,6 +84,12 @@ def create_app(settings=None, db=None, registry=None):
     @app.exception_handler(IntegrityError)
     async def conflict_handler(request, exc):
         return JSONResponse({"detail": "concurrent update or duplicate record; reload and retry"}, status_code=409)
+
+    @app.exception_handler(RequestValidationError)
+    async def validation_handler(request, exc):
+        # Pydantic errors otherwise echo submitted passwords/tokens in `input`.
+        return JSONResponse({"detail": [{k: e[k] for k in ("loc", "msg", "type")}
+                                        for e in exc.errors()]}, status_code=422)
 
     @app.middleware("http")
     async def security_headers(request, call_next):
@@ -107,7 +114,7 @@ def create_app(settings=None, db=None, registry=None):
 
     @app.get("/health/live")
     def live():
-        return {"status": "ok", "version": "1.0.0-rc.2"}
+        return {"status": "ok", "version": "2.0.0-rc.1"}
 
     @app.get("/health/ready")
     def ready():
@@ -156,6 +163,8 @@ def create_app(settings=None, db=None, registry=None):
     @app.post("/v1/users", status_code=201)
     def user_create(data: UserInput, current=Depends(actor)):
         current.require_role("admin")
+        if any(g.startswith("platform:") for g in data.grants):
+            raise Problem(403, "platform grants can only be assigned by the local operator")
         with db.session.begin() as s:
             result = identity.create_user(s, current.workspace, data)
             emit(s, current.workspace, "identity.created", {"actor": current.id, "user": result["id"]})
@@ -164,6 +173,8 @@ def create_app(settings=None, db=None, registry=None):
     @app.put("/v1/users/{user_id}/access")
     def user_access(user_id: str, data: AccessInput, current=Depends(actor)):
         current.require_role("admin")
+        if any(g.startswith("platform:") for g in data.grants):
+            raise Problem(403, "platform grants can only be assigned by the local operator")
         if user_id == current.id:
             raise Problem(409, "use a different administrator to change your own access")
         with db.session.begin() as s:
@@ -176,6 +187,7 @@ def create_app(settings=None, db=None, registry=None):
 
     @app.get("/v1/capabilities")
     def capabilities(current=Depends(actor)):
+        registry.refresh()
         return registry.visible(current)
 
     @app.post("/v1/runs", status_code=201)
@@ -292,6 +304,10 @@ def create_app(settings=None, db=None, registry=None):
             lines.extend(["# TYPE nexus_outbox_pending gauge", f"nexus_outbox_pending {pending}"])
             return "\n".join(lines) + "\n"
 
+    from .extensions import install
+    install(app, platform, actor)
+    from .memory import install as install_memory
+    install_memory(app, platform, actor)
     app.mount("/static", StaticFiles(directory=STATIC), name="static")
 
     @app.get("/", include_in_schema=False)

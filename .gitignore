@@ -14,3 +14,9 @@ data/
 backups/
 *.sqlite*
 *.db-*
+.env.*
+!.env.example
+credentials*.json
+secrets/
+*.zip
+*.log

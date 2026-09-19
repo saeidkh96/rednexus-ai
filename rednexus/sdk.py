@@ -17,6 +17,28 @@ class NexusClient:
     def close(self):
         self.client.close()
 
+    def __enter__(self):
+        return self
+
+    def __exit__(self, *_):
+        self.close()
+
+    def validate(self, workflow):
+        return self.request("POST", "/v2/validate", json=workflow)
+
+    def discovery(self):
+        return self.request("GET", "/v2/discovery")
+
+    def save_template(self, name, workflow):
+        return self.request("POST", "/v2/templates", json={"name": name, "workflow": workflow})
+
+    def submit_group(self, group, idempotency_key=None):
+        return self.request("POST", "/v2/mission-groups", json=group,
+                            headers={"Idempotency-Key": idempotency_key or str(uuid4())})
+
+    def semantic_search(self, namespace, query, limit=10):
+        return self.request("POST", "/v2/memory/search", json={"namespace": namespace, "query": query, "limit": limit})
+
     def request(self, method, path, **kwargs):
         response = self.client.request(method, path, **kwargs)
         response.raise_for_status()

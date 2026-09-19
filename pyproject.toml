@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "rednexus-ai"
-version = "1.0.0rc2"
+version = "2.0.0rc1"
 description = "Governed orchestration platform for the Red ecosystem"
 requires-python = ">=3.12"
 dynamic = ["dependencies"]

@@ -1,5 +1,87 @@
 {
   "$defs": {
+    "Condition": {
+      "additionalProperties": false,
+      "properties": {
+        "step": {
+          "maximum": 19,
+          "minimum": 0,
+          "title": "Step",
+          "type": "integer"
+        },
+        "pointer": {
+          "default": "",
+          "maxLength": 500,
+          "pattern": "^(|/.*)$",
+          "title": "Pointer",
+          "type": "string"
+        },
+        "format": {
+          "default": "value",
+          "enum": [
+            "value",
+            "json"
+          ],
+          "title": "Format",
+          "type": "string"
+        },
+        "op": {
+          "default": "eq",
+          "enum": [
+            "eq",
+            "ne",
+            "gt",
+            "gte",
+            "lt",
+            "lte",
+            "exists"
+          ],
+          "title": "Op",
+          "type": "string"
+        },
+        "value": {
+          "default": null,
+          "title": "Value"
+        }
+      },
+      "required": [
+        "step"
+      ],
+      "title": "Condition",
+      "type": "object"
+    },
+    "OutputBinding": {
+      "additionalProperties": false,
+      "properties": {
+        "step": {
+          "maximum": 19,
+          "minimum": 0,
+          "title": "Step",
+          "type": "integer"
+        },
+        "pointer": {
+          "default": "",
+          "maxLength": 500,
+          "pattern": "^(|/.*)$",
+          "title": "Pointer",
+          "type": "string"
+        },
+        "format": {
+          "default": "value",
+          "enum": [
+            "value",
+            "json"
+          ],
+          "title": "Format",
+          "type": "string"
+        }
+      },
+      "required": [
+        "step"
+      ],
+      "title": "OutputBinding",
+      "type": "object"
+    },
     "StepInput": {
       "additionalProperties": false,
       "properties": {
@@ -16,6 +98,25 @@
           "default": false,
           "title": "Use Previous",
           "type": "boolean"
+        },
+        "bindings": {
+          "additionalProperties": {
+            "$ref": "#/$defs/OutputBinding"
+          },
+          "maxProperties": 50,
+          "title": "Bindings",
+          "type": "object"
+        },
+        "when": {
+          "anyOf": [
+            {
+              "$ref": "#/$defs/Condition"
+            },
+            {
+              "type": "null"
+            }
+          ],
+          "default": null
         }
       },
       "required": [

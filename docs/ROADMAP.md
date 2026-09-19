@@ -1,4 +1,6 @@
-# Roadmap — milestones before calendar promises
+# Historical roadmap — v0/v1
+
+For the current implementation and remaining release gates, see [V2_IMPLEMENTATION.md](V2_IMPLEMENTATION.md).
 
 The first six weeks are an indicative foundation sprint for one developer, subject to actual repository/API compatibility. They do not represent a promise to finish the entire platform in six weeks.
 

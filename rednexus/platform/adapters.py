@@ -1,6 +1,5 @@
 import asyncio
 import json
-import os
 from pathlib import Path
 from urllib.parse import urlsplit
 import httpx
@@ -8,11 +7,12 @@ from opentelemetry.propagate import inject
 from jsonschema import Draft202012Validator, ValidationError
 from .contracts import CapabilitySpec, canonical, digest
 from .identity import Problem
+from .credentials import credential
 
 
 class AdapterFailure(Exception):
-    def __init__(self, code, retryable=False):
-        self.code, self.retryable = code, retryable
+    def __init__(self, code, retryable=False, http_status=None):
+        self.code, self.retryable, self.http_status = code, retryable, http_status
         super().__init__(code)
 
 
@@ -21,14 +21,19 @@ def validate_payload(schema, value):
         Draft202012Validator(schema).validate(value)
         if len(canonical(value).encode()) > 65536:
             raise ValueError()
-    except (ValidationError, ValueError, TypeError):
+    except ValidationError as exc:
+        path = "/" + "/".join(str(p) for p in exc.absolute_path)
+        raise Problem(422, f"input contract violation at {path}: {exc.validator}") from None
+    except (ValueError, TypeError):
         raise Problem(422, "payload does not satisfy capability schema or size limit") from None
 
 
 class Registry:
     def __init__(self, settings, specs=None):
         self.settings = settings
-        raw = json.loads(Path(settings.manifest_path).read_text()) if specs is None else specs
+        raw = json.loads(Path(settings.manifest_path).read_text(encoding="utf-8-sig")) if specs is None else specs
+        self.base_specs = raw
+        self.db = None
         self.specs = {}
         for item in raw:
             spec = CapabilitySpec.model_validate(item)
@@ -36,7 +41,22 @@ class Registry:
                 raise ValueError("duplicate capability name")
             if spec.mode == "http":
                 self.check_endpoint(spec.endpoint)
+            if spec.health_endpoint:
+                self.check_endpoint(spec.health_endpoint)
             self.specs[spec.name] = spec
+
+    def refresh(self):
+        if self.db is None:
+            return
+        from sqlalchemy import select
+        from .storage import CapabilityRegistration
+        with self.db.session() as session:
+            additions = [row.spec for row in session.scalars(select(CapabilityRegistration))]
+        merged = {name: spec.model_dump() for name, spec in self.specs.items()}
+        for item in additions:
+            merged[item["name"]] = item
+        fresh = Registry(self.settings, list(merged.values()))
+        self.specs = fresh.specs
 
     def check_endpoint(self, endpoint):
         parsed = urlsplit(endpoint)
@@ -61,7 +81,7 @@ class Registry:
 
     def visible(self, actor):
         return [
-            c.model_dump(exclude={"credential_env", "endpoint"})
+            c.model_dump(exclude={"credential_env", "endpoint", "health_endpoint"})
             for c in self.specs.values()
             if (f"tool:{c.name}" in actor.grants or actor.role == "admin")
             and (not c.workspace_binding or c.workspace_binding == actor.workspace)
@@ -76,9 +96,9 @@ async def bounded_request(method, url, body, headers, timeout, transport=None, p
             ) as client:
                 async with client.stream(method, url, json=body, headers=headers, params=params) as response:
                     if response.status_code in (429, 502, 503, 504):
-                        raise AdapterFailure("upstream_temporarily_unavailable", True)
+                        raise AdapterFailure("upstream_temporarily_unavailable", True, response.status_code)
                     if not 200 <= response.status_code < 300:
-                        raise AdapterFailure("upstream_rejected_request")
+                        raise AdapterFailure("upstream_rejected_request", http_status=response.status_code)
                     data = bytearray()
                     async for chunk in response.aiter_bytes():
                         data.extend(chunk)
@@ -121,10 +141,13 @@ class Gateway:
                 "X-Nexus-Actor": context["actor"],
             }
             if spec.credential_env:
-                credential = os.getenv(spec.credential_env)
-                if not credential:
+                try:
+                    secret = credential(self.registry.settings, spec.credential_env)
+                except (OSError, ValueError):
+                    raise AdapterFailure("credential_store_unavailable") from None
+                if not secret:
                     raise AdapterFailure("missing_service_credential")
-                headers["Authorization"] = f"Bearer {credential}"
+                headers["Authorization"] = f"Bearer {secret}"
             inject(headers)
             # Domain service must verify the credential and delegated workspace itself.
             if spec.protocol in ("redworld_v140", "redworld_v200"):

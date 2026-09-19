@@ -1,4 +1,4 @@
-> RC1 historical reference. Current RC2 setup: [ECOSYSTEM_SETUP_FA.md](ECOSYSTEM_SETUP_FA.md); current integration evidence: [INTEGRATION_STATUS.md](INTEGRATION_STATUS.md).
+> Historical v1 reference. Current release: **2.0.0 RC1**. See [V2_IMPLEMENTATION.md](V2_IMPLEMENTATION.md) and [release-evidence.json](release-evidence.json) for current scope and validation.
 
 # Release status: 1.0.0-rc.1
 

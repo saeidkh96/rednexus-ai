@@ -115,3 +115,44 @@ def test_manifest_grant_upgrade_is_scoped_and_audited(tmp_path):
     assert call('sync-admin-grants', '--workspace', 'other', '--username', 'admin').returncode != 0
     with sqlite3.connect(tmp_path / 'upgrade.db') as db:
         assert db.execute("SELECT count(*) FROM nx_events WHERE kind LIKE '%local_admin_grants_synced%'").fetchone()[0] == 2
+
+
+def test_launcher_starts_api_worker_and_reports_duplicate_worker(tmp_path):
+    import signal
+    import pytest
+    if os.name == "nt":
+        pytest.skip("POSIX signal-based launcher smoke; Windows launcher is a target gate")
+    with socket.socket() as probe:
+        probe.bind(("127.0.0.1", 0))
+        port = probe.getsockname()[1]
+    env = {**os.environ, "NEXUS_DATABASE_URL": f"sqlite:///{tmp_path / 'launch.db'}",
+           "NEXUS_MANIFEST": str(ROOT / 'config/projects.json')}
+    base = [sys.executable, '-m', 'rednexus.platform.cli']
+    with (tmp_path / 'launcher.log').open('w') as log:
+        process = subprocess.Popen(base + ['launch', '--port', str(port)], cwd=ROOT, env=env,
+                                   stdout=log, stderr=log)
+        try:
+            with httpx.Client(timeout=1, trust_env=False) as client:
+                for _ in range(100):
+                    try:
+                        if client.get(f'http://127.0.0.1:{port}/health/ready').status_code == 200:
+                            break
+                    except httpx.ConnectError:
+                        pass
+                    time.sleep(.1)
+                else:
+                    raise AssertionError('launcher API did not start')
+            # Allow the concurrently started worker to acquire its lock.
+            for _ in range(100):
+                if 'worker_started' in (tmp_path / 'launcher.log').read_text():
+                    break
+                time.sleep(.1)
+            duplicate = subprocess.run(base + ['worker', '--once'], cwd=ROOT, env=env,
+                                       capture_output=True, text=True, timeout=10)
+            assert duplicate.returncode != 0
+            assert 'already owns' in duplicate.stderr
+        finally:
+            process.send_signal(signal.SIGINT)
+            process.wait(timeout=20)
+    with sqlite3.connect(tmp_path / 'launch.db') as db:
+        assert db.execute("SELECT count(*) FROM nx_worker_heartbeats WHERE status='running'").fetchone()[0] == 0

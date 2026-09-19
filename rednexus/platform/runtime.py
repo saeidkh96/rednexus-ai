@@ -7,6 +7,7 @@ from .identity import actor_for, Problem
 from .contracts import digest
 from .adapters import AdapterFailure, validate_payload
 from .events import emit
+from .workflows import input_for, condition_matches
 
 TRACER = trace.get_tracer("rednexus.runtime")
 
@@ -141,9 +142,21 @@ class Worker:
                 spec = self.platform.registry.get(step["capability"])
                 if self.platform.registry.fingerprint(spec.name) != step["fingerprint"]:
                     raise Problem(409, "capability_contract_changed")
-                payload = dict(step["input"])
-                if step["use_previous"]:
-                    payload["previous"] = row.outputs[-1]
+                if row.cancel_requested:
+                    row.status = "cancelled"
+                    row.lease_token = row.lease_until = None
+                    return None
+                if not condition_matches(step.get("when"), row.outputs):
+                    row.outputs = [*row.outputs, {"skipped": True, "reason": "condition_false"}]
+                    row.cursor += 1
+                    row.status = "completed" if row.cursor == len(row.plan) else "queued"
+                    row.lease_token = row.lease_until = None
+                    row.attempts = 0
+                    emit(s, row.workspace, "step.skipped", {"step": row.cursor - 1}, row.id)
+                    if row.status == "completed":
+                        emit(s, row.workspace, "workflow.completed", {}, row.id)
+                    return None
+                payload = input_for(step, row.outputs)
                 validate_payload(spec.input_schema, payload)
                 action = {
                     "run_id": row.id,
@@ -253,7 +266,10 @@ class Worker:
                     else "failed"
                 )
                 row.next_attempt = time.time() + min(30, 2**row.attempts)
-                emit(s, row.workspace, "step.failed", {"code": error.code, "status": row.status}, row.id)
+                details = {"code": error.code, "status": row.status}
+                if error.http_status:
+                    details["http_status"] = error.http_status
+                emit(s, row.workspace, "step.failed", details, row.id)
             else:
                 row.outputs = [*row.outputs, output]
                 row.cursor += 1
@@ -267,6 +283,7 @@ class Worker:
                     emit(s, row.workspace, "workflow.completed", {"steps": row.cursor, "cost": row.cost}, row.id)
 
     async def tick(self):
+        self.platform.registry.refresh()
         self.recover()
         claim = self.claim()
         if not claim:

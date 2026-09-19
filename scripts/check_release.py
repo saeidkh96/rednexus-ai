@@ -18,7 +18,12 @@ gates = {
     "redis_verified": evidence.get("redis_verified", False),
     "browser_verified": evidence.get("browser_verified", False),
     "windows_verified": evidence.get("windows_verified", False),
+    "redpa_chat_live_verified": evidence.get("redpa_chat_live_verified", False),
+    "semantic_provider_verified": evidence.get("semantic_provider_verified", False),
+    "distributed_recovery_verified": evidence.get("distributed_recovery_verified", False),
+    "live_model_verified": evidence.get("live_model_verified", False),
+    "otel_collector_verified": evidence.get("otel_collector_verified", False),
 }
 ready = all(gates.values())
-print(json.dumps({"version": "1.0.0-rc.2", "stable_v1_ready": ready, "gates": gates}, indent=2))
+print(json.dumps({"version": "2.0.0-rc.1", "stable_v2_ready": ready, "gates": gates}, indent=2))
 raise SystemExit(0 if ready else 2)

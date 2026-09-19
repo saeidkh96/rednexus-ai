@@ -6,7 +6,7 @@ from jsonschema import Draft202012Validator
 
 
 class Contract(BaseModel):
-    model_config = ConfigDict(extra="forbid")
+    model_config = ConfigDict(extra="forbid", hide_input_in_errors=True)
 
 
 def canonical(value):
@@ -29,6 +29,7 @@ class CapabilitySpec(Contract):
     effect: Literal["read", "propose", "write"] = "read"
     approval: bool = False
     endpoint: str | None = None
+    health_endpoint: str | None = None
     credential_env: str | None = Field(default=None, pattern=r"^[A-Z][A-Z0-9_]*$")
     timeout_seconds: int = Field(default=20, ge=1, le=60)
     max_attempts: int = Field(default=2, ge=1, le=4)
@@ -62,10 +63,23 @@ class CapabilitySpec(Contract):
         return self
 
 
+class OutputBinding(Contract):
+    step: int = Field(ge=0, le=19)
+    pointer: str = Field(default="", max_length=500, pattern=r"^(|/.*)$")
+    format: Literal["value", "json"] = "value"
+
+
+class Condition(OutputBinding):
+    op: Literal["eq", "ne", "gt", "gte", "lt", "lte", "exists"] = "eq"
+    value: Any = None
+
+
 class StepInput(Contract):
     capability: str
     input: dict[str, Any] = Field(default_factory=dict)
     use_previous: bool = False
+    bindings: dict[str, OutputBinding] = Field(default_factory=dict, max_length=50)
+    when: Condition | None = None
 
 
 class RunInput(Contract):
@@ -79,6 +93,14 @@ class RunInput(Contract):
     def size(self):
         if len(canonical(self.model_dump()).encode()) > 65536:
             raise ValueError("workflow exceeds 64 KiB")
+        for index, step in enumerate(self.steps):
+            references = list(step.bindings.values()) + ([step.when] if step.when else [])
+            if any(ref.step >= index for ref in references):
+                raise ValueError("bindings and conditions must reference earlier steps")
+            if any(not key or len(key) > 100 or key in step.input for key in step.bindings):
+                raise ValueError("binding targets must be nonempty unique top-level input fields")
+            if step.use_previous and "previous" in step.bindings:
+                raise ValueError("previous cannot also be a binding target")
         return self
 
 
