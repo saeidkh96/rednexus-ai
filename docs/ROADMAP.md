@@ -1,3 +1,7 @@
+# Current roadmap
+
+See [the eight-stage delivery matrix](ROADMAP_1_TO_8.md).
+
 # Historical roadmap — v0/v1
 
 For the current implementation and remaining release gates, see [V2_IMPLEMENTATION.md](V2_IMPLEMENTATION.md).

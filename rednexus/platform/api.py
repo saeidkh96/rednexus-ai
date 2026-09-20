@@ -73,7 +73,7 @@ def create_app(settings=None, db=None, registry=None):
         db.health()
         yield
 
-    app = FastAPI(title="RedNexus AI", version="2.0.0-rc.1", lifespan=lifespan)
+    app = FastAPI(title="RedNexus AI", version="2.0.0-rc.2", lifespan=lifespan)
     app.add_middleware(RequestLimits)
     app.state.platform, app.state.identity, app.state.db = platform, identity, db
 
@@ -114,7 +114,7 @@ def create_app(settings=None, db=None, registry=None):
 
     @app.get("/health/live")
     def live():
-        return {"status": "ok", "version": "2.0.0-rc.1"}
+        return {"status": "ok", "version": "2.0.0-rc.2"}
 
     @app.get("/health/ready")
     def ready():

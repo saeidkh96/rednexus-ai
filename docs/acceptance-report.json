@@ -1,0 +1,61 @@
+{
+  "generated_at": "2026-09-20T21:08:47.420745+00:00",
+  "python": "3.12.3",
+  "platform": "Linux",
+  "checks": [
+    {
+      "name": "lint",
+      "exit_code": 0,
+      "log": "lint.log"
+    },
+    {
+      "name": "tests",
+      "exit_code": 0,
+      "log": "tests.log"
+    },
+    {
+      "name": "demo",
+      "exit_code": 0,
+      "log": "demo.log"
+    }
+  ],
+  "tests": {
+    "passed": 115,
+    "failed": 0,
+    "skipped": 7
+  },
+  "skipped": [
+    {
+      "test": "test_supplied_source_native_endpoint[redpulse-redpulse.analyze]",
+      "reason": "NEXUS_TEST_ECOSYSTEM_ROOT is not configured"
+    },
+    {
+      "test": "test_supplied_source_native_endpoint[redguard-redguard.inspect]",
+      "reason": "NEXUS_TEST_ECOSYSTEM_ROOT is not configured"
+    },
+    {
+      "test": "test_supplied_source_native_endpoint[redforge-redforge.scan]",
+      "reason": "NEXUS_TEST_ECOSYSTEM_ROOT is not configured"
+    },
+    {
+      "test": "test_real_redworld_api",
+      "reason": "NEXUS_TEST_REDWORLD_SRC is not configured"
+    },
+    {
+      "test": "test_real_postgresql_migration_and_worker",
+      "reason": "NEXUS_TEST_POSTGRES_URL is not configured"
+    },
+    {
+      "test": "test_real_redis_stream_outbox_receipts",
+      "reason": "NEXUS_TEST_REDIS_URL is not configured"
+    },
+    {
+      "test": "test_studio_v2_workflow_template_and_operations",
+      "reason": "NEXUS_TEST_BROWSER is not enabled"
+    }
+  ],
+  "source_sha256": "0941e977d9af12a9e5f55dba91e7d775a39ca81ecfc27081885d85fdbcfad80b",
+  "local_checks_passed": true,
+  "stable_release_certified": false,
+  "scope": "Local automated checks. Skips are unverified; live services and Windows require separate evidence."
+}

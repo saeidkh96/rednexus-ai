@@ -1,0 +1,47 @@
+{
+  "title": "maintenance-low: motor-07",
+  "steps": [
+    {
+      "capability": "redpulse.analyze",
+      "input": {
+        "machine_id": "motor-07",
+        "baseline": [
+          0.18,
+          0.21,
+          0.19,
+          0.22
+        ],
+        "current": [
+          0.18,
+          0.21,
+          0.19,
+          0.22
+        ],
+        "drift_score": 0.0,
+        "trajectory_match": 0.0,
+        "uncertainty": 0.12
+      },
+      "use_previous": false,
+      "bindings": {},
+      "when": null
+    },
+    {
+      "capability": "redworld.advance",
+      "input": {
+        "steps": 1
+      },
+      "use_previous": true,
+      "bindings": {},
+      "when": {
+        "step": 0,
+        "pointer": "/result/failure_risk",
+        "format": "value",
+        "op": "gte",
+        "value": 0.5
+      }
+    }
+  ],
+  "budget_microunits": 1000000,
+  "max_tool_calls": 20,
+  "deadline_seconds": 3600
+}

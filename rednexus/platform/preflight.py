@@ -36,8 +36,14 @@ def inspect(settings, transport=None):
                              and type(data.get("tick")) is int and "population" in data)
                 if not valid:
                     errors.append(name + ": unexpected_health_contract")
-            except (httpx.HTTPError, ValueError):
-                errors.append(name + ": health_request_failed")
+            except httpx.HTTPStatusError as exc:
+                errors.append(f"{name}: health_http_{exc.response.status_code}")
+            except httpx.TimeoutException:
+                errors.append(name + ": health_timeout")
+            except httpx.RequestError:
+                errors.append(name + ": health_connection_failed")
+            except ValueError:
+                errors.append(name + ": health_invalid_json")
     return {"ready": not errors, "manifest": str(Path(settings.manifest_path).resolve()),
             "capabilities": capabilities, "errors": errors,
             "scope": "RedPulse/RedWorld read-only preflight; not live workflow evidence"}

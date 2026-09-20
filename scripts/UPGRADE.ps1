@@ -3,7 +3,7 @@ $ErrorActionPreference = 'Stop'
 $SourceRoot = Split-Path $PSScriptRoot -Parent
 $TargetRoot = (Resolve-Path $Target).Path
 if ($SourceRoot -eq $TargetRoot) { throw 'Extract the update into a separate folder before using this script.' }
-if (!(Test-Path (Join-Path $TargetRoot 'rednexus\core.py'))) { throw 'Target is not the expected RedNexus v0 project.' }
+if (!(Test-Path (Join-Path $TargetRoot 'rednexus\core.py'))) { throw 'Target is not the expected RedNexus project.' }
 $Running = Get-CimInstance Win32_Process | Where-Object {
     $_.Name -match '^python(w)?\.exe$' -and $_.CommandLine -and
     $_.CommandLine.Contains($TargetRoot) -and $_.CommandLine -match 'rednexus'

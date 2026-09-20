@@ -1,17 +1,28 @@
 {
-  "version": "2.0.0-rc.1",
-  "generated_at": "2026-09-19T17:51:37.651228+00:00",
-  "python": "3.12.14",
+  "version": "2.0.0-rc.2",
+  "generated_at": "2026-09-20T21:08:47.420745+00:00",
+  "python": "3.12.3",
   "platform": "Linux",
   "core_tests_passed": true,
-  "passed_tests": 98,
-  "skipped_tests": 4,
+  "passed_tests": 115,
+  "skipped_tests": 7,
   "failed_tests": 0,
-  "line_coverage_percent": 75.92,
   "skipped": [
     {
+      "test": "test_supplied_source_native_endpoint[redpulse-redpulse.analyze]",
+      "reason": "NEXUS_TEST_ECOSYSTEM_ROOT is not configured"
+    },
+    {
+      "test": "test_supplied_source_native_endpoint[redguard-redguard.inspect]",
+      "reason": "NEXUS_TEST_ECOSYSTEM_ROOT is not configured"
+    },
+    {
       "test": "test_supplied_source_native_endpoint[redforge-redforge.scan]",
-      "reason": "RedForge source requires Python 3.14; set NEXUS_TEST_REDFORGE_PYTHON"
+      "reason": "NEXUS_TEST_ECOSYSTEM_ROOT is not configured"
+    },
+    {
+      "test": "test_real_redworld_api",
+      "reason": "NEXUS_TEST_REDWORLD_SRC is not configured"
     },
     {
       "test": "test_real_postgresql_migration_and_worker",
@@ -26,15 +37,10 @@
       "reason": "NEXUS_TEST_BROWSER is not enabled"
     }
   ],
-  "source_app_verified_projects": [
-    "redguard",
-    "redworld"
-  ],
-  "source_router_verified_projects": [
-    "redpulse"
-  ],
+  "source_app_verified_projects": [],
+  "source_router_verified_projects": [],
   "verified_live_projects": [],
-  "live_scope_note": "Source applications/router ran in isolated temporary HTTP processes; user's deployed services were not accessed.",
+  "live_scope_note": "RC2 tests use protocol fixtures. Prior user-reported Pulse/World run is documented separately.",
   "sqlite_backup_restore_passed": true,
   "api_worker_process_smoke_passed": true,
   "launcher_duplicate_worker_test_passed": true,
@@ -50,9 +56,8 @@
   "otel_collector_verified": false,
   "stable_v2_ready": false,
   "environment_limits": [
-    "PostgreSQL/Redis binaries unavailable; package installation failed under container OS permissions",
-    "Playwright browser download failed (timeouts/502); JavaScript syntax checked but no browser execution",
-    "RedForge source requires unavailable Python 3.14 interpreter; protocol tests passed",
-    "Windows DPAPI, PowerShell upgrade and live model providers require target validation"
+    "Browser download failed: HTTP 502/timeouts; JavaScript syntax checked.",
+    "Windows/DPAPI/PowerShell upgrade require CI or target validation.",
+    "PostgreSQL, Redis, actual model/embedding providers and OTel collector not tested locally."
   ]
 }

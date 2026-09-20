@@ -2,10 +2,11 @@
 
 import asyncio
 import os
+import time
 from uuid import uuid4
 import pytest
 from rednexus.platform.config import Settings
-from rednexus.platform.storage import Database, Event, BusReceipt
+from rednexus.platform.storage import Database, Event, BusReceipt, Run
 from rednexus.platform.adapters import Registry, Gateway
 from rednexus.platform.identity import Identity
 from rednexus.platform.contracts import UserInput, LoginInput, RunInput
@@ -35,7 +36,20 @@ def test_real_postgresql_migration_and_worker():
     actor = identity.authenticate(auth["access_token"])
     platform = Platform(db, registry, settings)
     run = platform.submit(actor, RunInput(title="PostgreSQL gate", steps=[{"capability": "redpa.search"}]), "1")
-    asyncio.run(Worker(platform, Gateway(registry)).tick())
+    first = Worker(platform, Gateway(registry))
+    run_id, stale_token = first.claim()
+    assert run_id == run["id"]
+    replacement_db = Database(settings)
+    try:
+        replacement = Worker(Platform(replacement_db, registry, settings), Gateway(registry))
+        assert replacement.claim() is None
+        with db.session.begin() as s:
+            s.get(Run, run_id).lease_until = time.time() - 1
+        replacement.recover()
+        asyncio.run(replacement.tick())
+        first.finish(run_id, stale_token, output={"stale": True})
+    finally:
+        replacement_db.close()
     assert platform.inspect(actor, run["id"])["status"] == "completed"
     db.close()
 

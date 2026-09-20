@@ -17,7 +17,7 @@ passed_names = {c.attrib["name"] for c in passed}
 lint = subprocess.run([sys.executable, "-m", "ruff", "check", "rednexus", "tests"], cwd=root, capture_output=True)
 coverage = json.loads(Path(sys.argv[2]).read_text())
 result = {
-    "version": "2.0.0-rc.1", "generated_at": datetime.now(timezone.utc).isoformat(),
+    "version": "2.0.0-rc.2", "generated_at": datetime.now(timezone.utc).isoformat(),
     "python": platform.python_version(), "platform": platform.system(),
     "core_tests_passed": bool(passed) and not failed, "passed_tests": len(passed), "skipped_tests": len(skipped),
     "failed_tests": len(failed), "line_coverage_percent": round(coverage["totals"]["percent_covered"], 2),

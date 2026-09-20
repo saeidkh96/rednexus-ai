@@ -33,7 +33,7 @@ def test_studio_v2_workflow_template_and_operations(tmp_path):
                     try:
                         if client.get(origin + "/health/ready").status_code == 200:
                             break
-                    except httpx.ConnectError:
+                    except (httpx.ConnectError, httpx.TimeoutException):
                         pass
                     time.sleep(0.1)
                 else:
@@ -48,7 +48,16 @@ def test_studio_v2_workflow_template_and_operations(tmp_path):
                 page.locator('[name="password"]').fill(environment["NEXUS_BOOTSTRAP_PASSWORD"])
                 page.locator('#login-form button').click()
                 page.locator('#shell').wait_for(state="visible")
-                page.locator('[data-page="workflow"]').click()
+                page.locator('#new-mission').click()
+                playwright.expect(page.locator('#recipe')).to_be_visible()
+                playwright.expect(page.locator('#mission-dialog')).not_to_be_visible()
+                page.locator('[data-r2="draft"]').click()
+                playwright.expect(page.locator('#recipe-notes')).to_contain_text('redworld.advance')
+                import json
+                fixture = {"title":"Browser fixture", "steps":[{"capability":"redpa.search", "input":{}}]}
+                page.locator('#workflow-file').set_input_files({"name":"workflow.json", "mimeType":"application/json",
+                    "buffer":json.dumps(fixture).encode()})
+                playwright.expect(page.locator('#notice')).to_contain_text('Imported draft')
                 page.locator('[data-v2="validate"]').click()
                 playwright.expect(page.locator('#v2-result')).to_contain_text('"valid": true')
                 page.locator('#template-name').fill("Browser template")

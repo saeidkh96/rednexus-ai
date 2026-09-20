@@ -67,7 +67,7 @@ class EventBus:
         for message_id, fields in messages:
             try:
                 body = json.loads(fields["event"])
-                if body.get("specversion") != "1.0" or not body.get("workspaceid") or not body.get("id"):
+                if not isinstance(body, dict) or body.get("specversion") != "1.0" or not body.get("workspaceid") or not body.get("id"):
                     raise ValueError("invalid event")
             except (KeyError, ValueError, TypeError):
                 self.client.xadd(

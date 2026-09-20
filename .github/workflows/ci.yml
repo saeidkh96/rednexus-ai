@@ -12,7 +12,12 @@ jobs:
           python-version: '3.12'
       - run: python -m pip install -r requirements-browser.txt
       - run: python -m playwright install --with-deps chromium
-      - run: python -m pytest -q tests/test_studio_v2.py
+      - run: python -m pytest -q tests/test_studio_v2.py --junitxml=artifacts/browser.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: browser-evidence
+          path: artifacts/
   unit:
     strategy:
       matrix:
@@ -26,7 +31,12 @@ jobs:
           python-version: ${{ matrix.python }}
       - run: python -m pip install -r requirements-dev.txt
       - run: python -m ruff check rednexus tests
-      - run: python -m pytest -q --cov=rednexus --cov-report=term-missing
+      - run: python -m pytest -q --cov=rednexus --cov-report=term-missing --junitxml=artifacts/tests.xml
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: unit-${{ matrix.os }}-${{ matrix.python }}
+          path: artifacts/
       - run: python -m rednexus.platform.cli demo
   services:
     runs-on: ubuntu-latest

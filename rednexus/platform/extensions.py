@@ -60,6 +60,37 @@ def workflow_from_run(row):
 def install(app, platform, actor):
     db, registry, settings = platform.db, platform.registry, platform.settings
 
+    from .drafts import DraftInput, build_draft
+
+    @app.post("/v2/workflow-drafts")
+    def workflow_draft(data: DraftInput, current=Depends(actor)):
+        current.require_role("admin", "operator")
+        result = build_draft(data)
+        registry.refresh()
+        names = [s["capability"] for s in result["workflow"]["steps"]]
+        result["missing_grants"] = [f"tool:{name}" for name in names if f"tool:{name}" not in current.grants]
+        result["unavailable_capabilities"] = [name for name in names if name not in registry.specs or
+            registry.specs[name].mode == "disabled" or registry.specs[name].workspace_binding not in (None, current.workspace)]
+        result["review_grants"] = [f"review:{name}" for name in names if name in registry.specs and
+                                  registry.specs[name].approval]
+        return result
+
+    @app.get("/v2/runs/{run_id}/evidence")
+    def run_evidence(run_id: str, current=Depends(actor)):
+        record = platform.inspect(current, run_id)
+        bundle = {"schema_version": "1.0", "scope": "recorded execution; no tools invoked",
+                  "run": record}
+        # Integrity checksum, not a signature or independent verification of upstream claims.
+        return {**bundle, "sha256": digest(bundle)}
+
+    @app.get("/v2/mission-groups")
+    def list_groups(current=Depends(actor)):
+        with db.session() as s:
+            query = select(MissionGroup).where(MissionGroup.workspace == current.workspace)
+            if current.role not in ("admin", "reviewer"):
+                query = query.where(MissionGroup.owner == current.id)
+            return [{"id": g.id, "title": g.title} for g in s.scalars(query.limit(100))]
+
     @app.post("/v2/workspaces", status_code=201)
     def create_workspace(data: WorkspaceInput, current=Depends(actor)):
         # Workspace creation is an explicit global grant, never implied by tenant admin.

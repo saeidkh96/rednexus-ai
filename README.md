@@ -1,3 +1,7 @@
+# RedNexus 2.0.0 RC2 update
+
+[راهنمای نصب فارسی](docs/INSTALL_RC2_FA.md) · [Roadmap 1–8](docs/ROADMAP_1_TO_8.md) · [Validation](docs/RC2_VALIDATION.md)
+
 # RedNexus AI
 
 **Independent projects. Shared workflows, memory and human review.**

@@ -25,5 +25,5 @@ gates = {
     "otel_collector_verified": evidence.get("otel_collector_verified", False),
 }
 ready = all(gates.values())
-print(json.dumps({"version": "2.0.0-rc.1", "stable_v2_ready": ready, "gates": gates}, indent=2))
+print(json.dumps({"version": "2.0.0-rc.2", "stable_v2_ready": ready, "gates": gates}, indent=2))
 raise SystemExit(0 if ready else 2)

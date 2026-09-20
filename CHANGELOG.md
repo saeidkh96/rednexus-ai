@@ -1,3 +1,12 @@
+# 2.0.0 RC2
+
+- Workflow recipes and import in Studio; primary New mission opens full builder.
+- Existing identity access editor, team proposals/status, scoped evidence exports.
+- Semantic Pulse-to-RedPA handoff recipe with exact-input review.
+- Native HTTP fixture acceptance for skip, rejection, timeout, revocation and recovery.
+- Local acceptance runner, expanded browser/PostgreSQL CI checks, preserved configuration upgrade.
+- Still a release candidate: see current gate matrix.
+
 # Changelog
 
 ## 2.0.0-rc.1 — 2026-09-19
