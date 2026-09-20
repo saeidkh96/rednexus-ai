@@ -13,7 +13,7 @@ def launch(port=8000, concurrency=2, ecosystem=False):
         environment["NEXUS_MANIFEST"] = str(root / "config/projects-ecosystem.json")
         environment.setdefault("NEXUS_ALLOW_HTTP", "true")
         environment.setdefault("NEXUS_ALLOWED_ORIGINS", ",".join(
-            f"http://127.0.0.1:{p}" for p in (8100, 8111, 8112, 8113, 8114)))
+            f"http://127.0.0.1:{p}" for p in (8100, 8111, 8112, 8002, 8114)))
     base = [sys.executable, "-m", "rednexus.platform.cli"]
     check = subprocess.run(base + ["migrate"], cwd=root, env=environment)
     if check.returncode:

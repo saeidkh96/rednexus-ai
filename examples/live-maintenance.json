@@ -1,0 +1,14 @@
+{
+  "title": "Live maintenance risk with reviewed world advance",
+  "steps": [
+    {"capability": "redpulse.analyze", "input": {
+      "machine_id": "motor-07", "baseline": [0.18, 0.21, 0.19, 0.22],
+      "current": [0.62, 0.69, 0.66, 0.71], "drift_score": 0.72,
+      "trajectory_match": 0.81, "uncertainty": 0.12
+    }},
+    {"capability": "redworld.advance", "input": {"steps": 1},
+      "use_previous": true,
+      "when": {"step": 0, "pointer": "/result/failure_risk", "op": "gte", "value": 0.5}}
+  ],
+  "budget_microunits": 1000000, "max_tool_calls": 4, "deadline_seconds": 3600
+}

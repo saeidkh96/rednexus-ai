@@ -106,7 +106,7 @@ def test_manifest_grant_upgrade_is_scoped_and_audited(tmp_path):
 
     assert call('bootstrap', '--workspace', 'red', '--username', 'admin').returncode == 0
     env.update(NEXUS_MANIFEST=str(ROOT / 'config/projects-ecosystem.json'), NEXUS_ALLOW_HTTP='true',
-               NEXUS_ALLOWED_ORIGINS=','.join(f'http://127.0.0.1:{p}' for p in [8100, 8111, 8112, 8113, 8114]))
+               NEXUS_ALLOWED_ORIGINS=','.join(f'http://127.0.0.1:{p}' for p in [8100, 8111, 8112, 8002, 8114]))
     first = call('sync-admin-grants', '--workspace', 'red', '--username', 'admin')
     assert first.returncode == 0, first.stderr
     assert 'tool:redforge.scan' in json.loads(first.stdout)['added']

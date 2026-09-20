@@ -71,3 +71,7 @@ Remove-Item Env:NEXUS_REDPA_TOKEN -ErrorAction SilentlyContinue
 
 README و `docs/V2_IMPLEMENTATION.md` جزئیات و محدودیت‌ها را دارند. اجرای ویندوز،
 مرورگر، مدل زنده و PostgreSQL/Redis باید در محیط مقصد تأیید شوند.
+# آپدیت اجرای واقعی
+
+برای نصب این بسته و اجرای workflow شرطی RedPulse → RedWorld، ابتدا
+`docs/LIVE_UPDATE_FA.md` را بخوانید. این بسته همچنان integration preview است.

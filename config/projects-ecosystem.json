@@ -9,7 +9,7 @@
     "workspace_binding": "red",
     "effect": "read",
     "approval": false,
-    "endpoint": "http://127.0.0.1:8113/api/v1/platform/v40/intelligence/evaluate",
+    "endpoint": "http://127.0.0.1:8002/api/v1/platform/v40/intelligence/evaluate",
     "max_attempts": 2,
     "input_schema": {
       "type": "object",

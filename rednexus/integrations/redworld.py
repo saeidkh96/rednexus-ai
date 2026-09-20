@@ -44,5 +44,10 @@ async def execute_redworld(spec, payload, context, headers, transport=None):
         "summary": f"RedWorld at tick {world['tick']}; advanced {advanced} steps",
         "world": world,
         "advanced_steps": advanced,
+        "orchestration_context": {
+            "previous": payload.get("previous"),
+            "objective": payload.get("objective"),
+            "applied_to_world_model": False,
+        },
         "evidence": [{"source": spec.endpoint, "world_tick": world["tick"], "kind": "live_project_api"}],
     }
