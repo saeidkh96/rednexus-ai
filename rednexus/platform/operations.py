@@ -7,7 +7,7 @@ from pathlib import Path
 from .storage import WorkerHeartbeat
 from .identity import Problem
 from .credentials import credential
-
+import httpx
 
 class WorkerLock:
     """One default CLI worker per local database; OS releases the lock on crashes."""
@@ -57,12 +57,50 @@ def heartbeat(platform, worker_id, status):
 def doctor(platform):
     platform.db.health()
     platform.registry.refresh()
+
     items = []
     for spec in platform.registry.specs.values():
         try:
-            ready = not spec.credential_env or bool(credential(platform.settings, spec.credential_env))
+            credential_ready = not spec.credential_env or bool(
+                credential(platform.settings, spec.credential_env)
+            )
         except (OSError, ValueError):
-            ready = False
-        items.append({"name": spec.name, "mode": spec.mode, "credential_ready": ready,
-                      "health_configured": bool(spec.health_endpoint)})
-    return {"database": "ok", "capabilities": items, "credentials_in_output": False}
+            credential_ready = False
+
+        item = {
+            "name": spec.name,
+            "mode": spec.mode,
+            "credential_ready": credential_ready,
+            "health_configured": bool(spec.health_endpoint),
+        }
+
+        if spec.health_endpoint:
+            started = time.perf_counter()
+            try:
+                response = httpx.get(
+                    spec.health_endpoint,
+                    timeout=5.0,
+                    follow_redirects=True,
+                )
+                item["health"] = (
+                    "healthy" if response.is_success else "unhealthy"
+                )
+                item["http_status"] = response.status_code
+            except httpx.HTTPError as error:
+                item["health"] = "unreachable"
+                item["error"] = type(error).__name__
+            finally:
+                item["latency_ms"] = round(
+                    (time.perf_counter() - started) * 1000,
+                    2,
+                )
+        else:
+            item["health"] = "not_configured"
+
+        items.append(item)
+
+    return {
+        "database": "ok",
+        "capabilities": items,
+        "credentials_in_output": False,
+    }
