@@ -80,7 +80,8 @@
                                                                   "minItems":  1
                                                               }
                                              }
-                          }
+                          },
+        "health_endpoint":  "http://127.0.0.1:8002/api/v1/health"
     },
     {
         "name":  "redguard.inspect",
@@ -260,7 +261,8 @@
                                                               }
                                              }
                           },
-        "credential_env":  "NEXUS_REDPA_TOKEN"
+        "credential_env":  "NEXUS_REDPA_TOKEN",
+        "health_endpoint":  "http://127.0.0.1:8111/api/v1/platform/health"
     },
     {
         "name":  "redpa.chat",
@@ -316,7 +318,8 @@
                                              }
                           },
         "credential_env":  "NEXUS_REDPA_TOKEN",
-        "timeout_seconds":  60
+        "timeout_seconds":  60,
+        "health_endpoint":  "http://127.0.0.1:8111/api/v1/platform/health"
     },
     {
         "name":  "redworld.snapshot",
@@ -369,7 +372,8 @@
                                                            }
                                              }
                           },
-        "estimated_cost_microunits":  100
+        "estimated_cost_microunits":  100,
+        "health_endpoint":  "http://127.0.0.1:8100/api/v1/world"
     },
     {
         "name":  "redworld.advance",
@@ -422,6 +426,7 @@
                                                            }
                                              }
                           },
-        "estimated_cost_microunits":  100
+        "estimated_cost_microunits":  100,
+        "health_endpoint":  "http://127.0.0.1:8100/api/v1/world"
     }
 ]
